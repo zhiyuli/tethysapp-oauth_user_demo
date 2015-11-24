@@ -19,6 +19,10 @@ def home(request):
     client_id = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_KEY", "None") 
     client_secret = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_SECRET", "None")
     access_token = social.extra_data['access_token']
+    # refresh_token = social.extra_data['refresh_token']
+    # output += "refresh_token: " + refresh_token
+    for key in social.extra_data:
+      output +=  str(key) +  str('-->') + str(social.extra_data[key])
     
     token = {
        "access_token": access_token,
