@@ -11,21 +11,20 @@ def home(request):
     Controller for the app home page.
     """
     output = ""
-    current_user = request.user
-    
-    social = request.user.social_auth.get(provider='hydroshare')
-    #access_token_old = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    #output += "old token: " + str(access_token_old)
-    refresh = social.refresh_token()
-    output += str("refresh:") + str(refresh)
+   
     access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    output += str("new token: ")+str(access_token)
+    output += "access token: " + str(access_token)
+    #refresh_token = request.user.social_auth.get(provider='hydroshare').extra_data['refresh_token']
+    #output += str("refresh_token: ") + str(refresh_token)
+    #refresh = request.user.social_auth.get(provider='hydroshare').refresh_token()
+    #output += str("refresh:") + str(refresh)
+    #access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
+    #output += str("new token: ")+str(access_token)
     client_id = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_KEY", "None") 
     client_secret = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_SECRET", "None")
-    access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
   
-    for key in social.extra_data:
-      output +=  str(key) +  str('-->') + str(social.extra_data[key])
+    for key in request.user.social_auth.get(provider='hydroshare').extra_data:
+      output +=  str(key) +  str('-->') + str(request.user.social_auth.get(provider='hydroshare').extra_data[key])
     
     token = {
        "access_token": access_token,
@@ -41,7 +40,7 @@ def home(request):
     	for resource in hs.getResourceList():
           output += str(resource)
     except TokenExpiredError as e:
-        output += str("Token Expired!")
+        output += str("********************Token Expired!******************************")
         request.user.social_auth.get(provider='hydroshare').refresh_token()
         new_access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
         output += str('new_access_token: ') + str(new_access_token)
@@ -52,13 +51,13 @@ def home(request):
     except:
         output += str("error!")    
         
-    abstract = 'My abstract'
-    title = 'My resource'
-    keywords = ('my keyword 1', 'my keyword 2')
-    rtype = 'GenericResource'
-    fpath = '/tmp/icon.gif'
-    resource_id = hs.createResource(rtype, title, resource_file=fpath, keywords=keywords, abstract=abstract)
-    
+    #abstract = 'My abstract'
+    #title = 'My resource'
+    #keywords = ('my keyword 1', 'my keyword 2')
+    #rtype = 'GenericResource'
+    #fpath = '/tmp/icon.gif'
+    #resource_id = hs.createResource(rtype, title, resource_file=fpath, keywords=keywords, abstract=abstract)
+    resource_id = "123"
     context = {"output": output, "resource_id": resource_id}
     
     return render(request, 'oauth_user_demo/home.html', context)
