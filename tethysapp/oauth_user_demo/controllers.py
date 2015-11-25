@@ -13,13 +13,13 @@ def home(request):
     output = ""
    
     access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    output += "access token: " + str(access_token)
+    output += "old access token: " + str(access_token)
     #refresh_token = request.user.social_auth.get(provider='hydroshare').extra_data['refresh_token']
     #output += str("refresh_token: ") + str(refresh_token)
-    #refresh = request.user.social_auth.get(provider='hydroshare').refresh_token()
-    #output += str("refresh:") + str(refresh)
-    #access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    #output += str("new token: ")+str(access_token)
+    refresh = request.user.social_auth.get(provider='hydroshare').refresh_token()
+    output += str("refresh:") + str(refresh)
+    access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
+    output += str("new token: ")+str(access_token)
     client_id = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_KEY", "None") 
     client_secret = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_SECRET", "None")
   
@@ -35,21 +35,23 @@ def home(request):
                  }
     auth = HydroShareAuthOAuth2(client_id, client_secret, token=token)
     output += str("clientid:") + str(client_id) +";__  "+str("client_secret: ")+str(client_secret)
-    try:
-    	hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
-    	for resource in hs.getResourceList():
-          output += str(resource)
-    except TokenExpiredError as e:
-        output += str("********************Token Expired!******************************")
-        request.user.social_auth.get(provider='hydroshare').refresh_token()
-        new_access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-        output += str('new_access_token: ') + str(new_access_token)
-        auth = HydroShareAuthOAuth2(client_id, client_secret, token=token)
-        hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
-        for resource in hs.getResourceList():
-          output += str(resource)
-    except:
-        output += str("error!")    
+    #try:
+
+    hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
+    for resource in hs.getResourceList():
+    	output += str(resource)
+    
+    #except TokenExpiredError as e:
+    #    output += str("********************Token Expired!******************************")
+    #    request.user.social_auth.get(provider='hydroshare').refresh_token()
+    #    new_access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
+    #    output += str('new_access_token: ') + str(new_access_token)
+    #    auth = HydroShareAuthOAuth2(client_id, client_secret, token=token)
+    #    hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
+    #    for resource in hs.getResourceList():
+    #      output += str(resource)
+    #except:
+    #    output += str("error!")    
         
     #abstract = 'My abstract'
     #title = 'My resource'
