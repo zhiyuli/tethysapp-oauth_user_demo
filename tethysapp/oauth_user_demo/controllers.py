@@ -1,65 +1,40 @@
+import time
+import logging
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from social_auth.models import UserSocialAuth
 from django.conf import settings
 from oauthlib.oauth2 import TokenExpiredError
 from hs_restclient import HydroShare, HydroShareAuthOAuth2
-
 @login_required()
 def home(request):
     """
     Controller for the app home page.
     """
-    output = ""
+    logger = logging.getLogger('django')
+    logger.error('Entering controller.py...')
+    res_output = ""
    
-    access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    output += "old access token: " + str(access_token)
-    #refresh_token = request.user.social_auth.get(provider='hydroshare').extra_data['refresh_token']
-    #output += str("refresh_token: ") + str(refresh_token)
-    refresh = request.user.social_auth.get(provider='hydroshare').refresh_token()
-    output += str("refresh:") + str(refresh)
-    access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    output += str("new token: ")+str(access_token)
     client_id = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_KEY", "None") 
     client_secret = getattr(settings, "SOCIAL_AUTH_HYDROSHARE_SECRET", "None")
-  
-    for key in request.user.social_auth.get(provider='hydroshare').extra_data:
-      output +=  str(key) +  str('-->') + str(request.user.social_auth.get(provider='hydroshare').extra_data[key])
+    token = request.user.social_auth.get(provider='hydroshare').extra_data['token_dict']
     
-    token = {
-       "access_token": access_token,
-       "token_type": "Bearer",
-       "expires_in": request.user.social_auth.get(provider='hydroshare').extra_data['expires'],
-       "refresh_token": "123",
-       "scope": "read write groups"
-                 }
+    token_dict_str = "Token: {0}".format(str(token))
+    logger.error(token_dict_str)
     auth = HydroShareAuthOAuth2(client_id, client_secret, token=token)
-    output += str("clientid:") + str(client_id) +";__  "+str("client_secret: ")+str(client_secret)
-    #try:
-
-    hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
-    for resource in hs.getResourceList():
-    	output += str(resource)
+    try:
+        logger.error("Fetching resource list from playground.hydroshare.org")
+        hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
+        for resource in hs.getResourceList():
+            res_output += str(resource) 
+     
+        context = {"res_output": res_output, "token_dict_str": token_dict_str}
     
-    #except TokenExpiredError as e:
-    #    output += str("********************Token Expired!******************************")
-    #    request.user.social_auth.get(provider='hydroshare').refresh_token()
-    #    new_access_token = request.user.social_auth.get(provider='hydroshare').extra_data['access_token']
-    #    output += str('new_access_token: ') + str(new_access_token)
-    #    auth = HydroShareAuthOAuth2(client_id, client_secret, token=token)
-    #    hs = HydroShare(auth=auth, hostname='playground.hydroshare.org')
-    #    for resource in hs.getResourceList():
-    #      output += str(resource)
-    #except:
-    #    output += str("error!")    
+        return render(request, 'oauth_user_demo/home.html', context)
+    
+    except TokenExpiredError as e:
+        # TODO: redirect back to login view, giving this view as the view to return to
+        logger.error("TokenExpiredError: TODO: redirect to login view")
+        raise e
         
-    #abstract = 'My abstract'
-    #title = 'My resource'
-    #keywords = ('my keyword 1', 'my keyword 2')
-    #rtype = 'GenericResource'
-    #fpath = '/tmp/icon.gif'
-    #resource_id = hs.createResource(rtype, title, resource_file=fpath, keywords=keywords, abstract=abstract)
-    resource_id = "123"
-    context = {"output": output, "resource_id": resource_id}
-    
-    return render(request, 'oauth_user_demo/home.html', context)
+
